@@ -7,9 +7,9 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.chrome.options import Options
 # Ouverture de la page locale index.html
 chemin_page = "file://" + os.path.abspath("projet_Locavelo/index.html")
-chrome_option add_argument("--headless=new")
-chrome_option add_argument("--no-sandbox")
-chrome_option add_argument("--disable-dev-shm-usage")
+chrome_options .add_argument("--headless=new")
+chrome_options .add_argument("--no-sandbox")
+chrome_options .add_argument("--disable-dev-shm-usage")
 driver =webdriver.Chrome(options=chrome_options)
 
 # Date de demain au format AAAA-MM-JJ (ex: 2026-11-15)
