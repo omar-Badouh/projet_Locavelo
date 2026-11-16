@@ -7,6 +7,7 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.chrome.options import Options
 # Ouverture de la page locale index.html
 chemin_page = "file://" + os.path.abspath("projet_Locavelo/index.html")
+chrome_options= Options()
 chrome_options .add_argument("--headless=new")
 chrome_options .add_argument("--no-sandbox")
 chrome_options .add_argument("--disable-dev-shm-usage")
