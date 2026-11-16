@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LocaVélo – Réservation</title>
+<style>
+body{font-family:system-ui,Arial,sans-serif;margin:0;background:#eef3f1;color:#1d2b27;line-height:1.5}
+header{background:#14532d;color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
+header h1{margin:0;font-size:1.3rem}
+main{max-width:520px;margin:20px auto;padding:0 16px}
+form,#ok{background:#fff;border-radius:10px;padding:20px;margin-bottom:16px;box-shadow:0 1px 4px #0002}
+h2{margin:0 0 8px;font-size:1.1rem}
+label{display:block;font-weight:600;margin:12px 0 4px}
+input,select{width:100%;padding:9px;font-size:1rem;border:1px solid #6b7a74;border-radius:6px;box-sizing:border-box}
+fieldset{border:0;padding:0;margin:12px 0 0}legend{font-weight:600}
+.opt{display:flex;gap:8px;font-weight:400;margin:6px 0}.opt input{width:auto}
+.err{color:#b3261e;font-size:.9rem;margin:3px 0 0}.err:empty{display:none}
+.hint{font-size:.85rem;margin:6px 0 0;color:#b5b5b5}body.fix .hint{color:#52605a}
+button{margin-top:16px;width:100%;padding:12px;font-size:1.05rem;font-weight:700;background:#14532d;color:#fff;border:0;border-radius:6px;cursor:pointer}
+:focus-visible{outline:3px solid #2a6fdb;outline-offset:2px}
+#ok[hidden]{display:none}dt{color:#52605a;font-size:.85rem}dd{margin:0 0 8px;font-weight:600}
+</style></head>
+<body>
+<header><h1>LocaVélo</h1><small id="ver"></small></header>
+<main>
+<form id="f" novalidate>
+<h2>Réserver un vélo</h2>
+<label for="nom">Nom</label><input id="nom" autocomplete="name"><p class="err" id="e-nom" role="alert"></p>
+<label for="email">E-mail</label><input id="email" autocomplete="email"><p class="err" id="e-email" role="alert"></p>
+<label for="velo">Type de vélo</label>
+<select id="velo"><option value="">Choisir…</option><option value="ville">Ville – 12 €/jour</option><option value="elec">Électrique – 25 €/jour</option><option value="cargo">Cargo – 30 €/jour</option></select>
+<p class="err" id="e-velo" role="alert"></p>
+<label for="debut">Date de début</label><input type="date" id="debut"><p class="err" id="e-debut" role="alert"></p>
+<label for="jours">Durée (en jours)</label><input type="number" id="jours" value="1"><p class="err" id="e-jours" role="alert"></p>
+<p class="hint">Remise de 10 % dès 7 jours de location.</p>
+<fieldset><legend>Options (par jour)</legend>
+<label class="opt"><input type="checkbox" id="casque"> Casque (+2 €)</label>
+<label class="opt"><input type="checkbox" id="assurance"> Assurance (+4 €)</label></fieldset>
+<label for="promo" id="lp">Code promo (facultatif)</label><input id="promo" placeholder="Code promo"><p class="err" id="e-promo" role="alert"></p>
+<button type="submit">Réserver</button>
+</form>
+<section id="ok" hidden aria-live="polite"><h2>Réservation confirmée</h2><dl>
+<dt>Vélo</dt><dd id="r-velo"></dd><dt>Début</dt><dd id="r-debut"></dd><dt>Durée</dt><dd id="r-jours"></dd>
+<dt>Options</dt><dd id="r-opts"></dd><dt>Référence</dt><dd id="r-ref"></dd><dt>Prix total</dt><dd id="r-total"></dd></dl></section>
+</main>
+<script>
+(function(){
+// ?v=1.1 ouvre la version corrigée, pour le retest
+var fixed=new URLSearchParams(location.search).get('v')==='1.1';
+var $=function(i){return document.getElementById(i)};
+$('ver').textContent='Version '+(fixed?'1.1':'1.0');
+if(fixed)document.body.classList.add('fix');
+$('lp').hidden=!fixed;
+var T={ville:12,elec:25,cargo:30},NOMS={ville:'Ville',elec:'Électrique',cargo:'Cargo'};
+var MAXJ=fixed?14:15,SEUIL=fixed?7:8,CODES={BIENVENUE:5};
+function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function e(k,m){$('e-'+k).textContent=m;return false}
+function check(){
+ var ok=true;['nom','email','velo','debut','jours','promo'].forEach(function(k){$('e-'+k).textContent=''});
+ var nom=$('nom').value.trim();
+ if(nom.length<2||nom.length>40)ok=e('nom','Le nom doit contenir entre 2 et 40 caractères.');
+ var re=fixed?/^[^@\s]+@[^@\s]+\.[^@\s]+$/:/^[^@\s]+@[^@\s]+$/;
+ if(!re.test($('email').value.trim()))ok=e('email','Adresse e-mail invalide.');
+ if(!$('velo').value)ok=e('velo','Choisissez un type de vélo.');
+ if(!$('debut').value)ok=e('debut','Choisissez une date de début.');
+ else if($('debut').value<today())ok=e('debut','La date de début ne peut pas être dans le passé.');
+ var n=Number($('jours').value);
+ if($('jours').value===''||!Number.isInteger(n)||n<1||n>MAXJ)ok=e('jours','La durée doit être comprise entre 1 et 14 jours.');
+ var c=$('promo').value.trim().toUpperCase();
+ if(c&&!(c in CODES))ok=e('promo','Code promo invalide.');
+ return ok}
+$('f').addEventListener('submit',function(ev){
+ ev.preventDefault();$('ok').hidden=true;if(!check())return;
+ var n=Number($('jours').value),cq=$('casque').checked,as=$('assurance').checked,v=$('velo').value;
+ var t=n*(T[v]+(cq?2:0)+(as?4:0));
+ if(n>=SEUIL)t*=0.9;
+ var c=$('promo').value.trim().toUpperCase();if(CODES[c])t-=CODES[c];
+ t=Math.max(0,t);
+ var p=$('debut').value.split('-'),o=[];if(cq)o.push('Casque');if(as)o.push('Assurance');
+ $('r-velo').textContent=NOMS[v];$('r-debut').textContent=p[2]+'/'+p[1]+'/'+p[0];
+ $('r-jours').textContent=n+(n>1?' jours':' jour');$('r-opts').textContent=o.length?o.join(', '):'Aucune';
+ $('r-ref').textContent='LV-'+p.join('')+'-'+n;
+ $('r-total').textContent=t.toFixed(2).replace('.',',')+' €';
+ $('ok').hidden=false;$('ok').scrollIntoView({behavior:'smooth',block:'nearest'});
+});
+})();
+</script>
+</body></html>
