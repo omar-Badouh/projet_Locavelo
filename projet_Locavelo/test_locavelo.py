@@ -4,11 +4,13 @@ from datetime import date, timedelta
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
-
+from selenium.webdriver.chrome.options import Options
 # Ouverture de la page locale index.html
-chemin_page = "file://" + os.path.abspath("index.html")
-driver = webdriver.Chrome()
-driver.maximize_window()
+chemin_page = "file://" + os.path.abspath("projet_Locavelo/index.html")
+chrome_option add_argument("--headless=new")
+chrome_option add_argument("--no-sandbox")
+chrome_option add_argument("--disable-dev-shm-usage")
+driver =webdriver.Chrome(options=chrome_options)
 
 # Date de demain au format AAAA-MM-JJ (ex: 2026-11-15)
 date_demain = (date.today() + timedelta(days=1)).strftime("%Y-%m-%d")
