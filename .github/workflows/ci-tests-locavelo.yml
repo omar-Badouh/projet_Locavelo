@@ -1,0 +1,27 @@
+name: Tests Automatisés LocaVélo (Selenium)
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  tests-qa-locavelo:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupération du code du projet
+        uses: actions/checkout@v4
+
+      - name: Installation de Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Installation de Selenium et Chrome
+        run: |
+          pip install selenium
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+
+      - name: Exécution des tests automatisés LocaVélo
+        run: python projet_Locavelo/test_locavelo.py
